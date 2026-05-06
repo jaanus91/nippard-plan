@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nippard BTS — 3-Day Upper Focus</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f0b;--surface:#161810;--card:#1c1e16;--border:#2a2e22;
+  --accent:#c8f04a;--text:#e8ead8;--muted:#7a7d6a;--dimmer:#4a4d3a;
+  --upper:#c8f04a;--pull:#4af0c8;--push:#f0c84a;--legs:#f07a4a;
+  --tbl-hdr:#3a4a2a;--tbl-row1:#1e2018;--tbl-row2:#191b14;--tbl-border:#2e3226;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:48px 48px;opacity:.25;pointer-events:none;z-index:0;}
+.shell{position:relative;z-index:1;max-width:1680px;margin:0 auto;padding:32px 44px 80px;}
+
+/* HEADER */
+.site-header{display:flex;align-items:flex-end;justify-content:space-between;
+  border-bottom:1px solid var(--border);padding-bottom:24px;margin-bottom:24px;gap:24px;}
+.prog-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,5.5vw,88px);letter-spacing:.03em;line-height:1;}
+h1 span{color:var(--accent);}
+.header-meta{display:flex;gap:28px;margin-top:10px;font-size:13px;color:var(--muted);}
+.header-meta strong{color:var(--text);}
+.header-right{display:flex;gap:12px;align-items:center;flex-shrink:0;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 22px;text-align:center;}
+.stat-box .n{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;}
+.stat-box .l{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em;}
+
+/* NEXT SESSION BANNER */
+.next-banner{display:flex;align-items:center;gap:20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px 22px;margin-bottom:20px;flex-wrap:wrap;}
+.next-label{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;
+  letter-spacing:.12em;color:var(--muted);}
+.next-session{display:flex;align-items:center;gap:14px;}
+.next-date{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.04em;color:var(--accent);line-height:1;}
+.next-workout{font-size:14px;font-weight:600;}
+.next-countdown{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);
+  background:#12140e;border:1px solid var(--border);border-radius:6px;padding:4px 12px;}
+.next-countdown.today{color:var(--accent);border-color:var(--accent);background:#c8f04a12;}
+.next-sep{width:1px;height:28px;background:var(--border);}
+.prev-session{display:flex;align-items:center;gap:10px;opacity:.6;}
+.prev-label{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+.prev-info{font-size:12px;color:var(--muted);}
+
+/* LEGEND */
+.legend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;
+  padding:13px 20px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;margin-bottom:24px;}
+.li{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.ldot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sep{width:1px;height:16px;background:var(--border);}
+.bpill{font-size:10px;padding:2px 9px;border-radius:20px;font-family:'DM Mono',monospace;letter-spacing:.05em;}
+.pf{background:#c8f04a15;color:#c8f04a;} .pa{background:#4af0c815;color:#4af0c8;}
+.pi{background:#f0c84a15;color:#f0c84a;} .pd{background:#a0a09015;color:#a0a090;}
+.pp{background:#e87aff15;color:#e87aff;}
+
+/* WEEK NAV */
+.week-nav-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
+.nav-lbl{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+.pills{display:flex;gap:4px;flex-wrap:wrap;}
+.wp{font-family:'DM Mono',monospace;font-size:11px;padding:5px 11px;
+  border:1px solid var(--border);border-radius:4px;background:transparent;
+  color:var(--muted);cursor:pointer;transition:all .13s;letter-spacing:.04em;position:relative;}
+.wp:hover{border-color:var(--dimmer);color:var(--text);}
+.wp.active{background:var(--accent);color:#0e0f0b;border-color:var(--accent);font-weight:500;}
+.wp.current-wk{border-color:var(--accent);}
+.wp.current-wk:not(.active){color:var(--accent);}
+/* "today" dot on pill */
+.wp.has-today::after{content:'';position:absolute;top:3px;right:3px;
+  width:4px;height:4px;border-radius:50%;background:var(--accent);}
+.wp.active.has-today::after{background:#0e0f0b;}
+
+/* WEEK HEADER */
+.week-hdr{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+.wk-title{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.04em;line-height:1;}
+.wk-sub{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+/* DAY CARDS */
+.day-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;
+  cursor:pointer;animation:fadeUp .22s ease both;}
+.day-card:nth-child(2){animation-delay:.07s;}
+.day-card:nth-child(3){animation-delay:.14s;}
+.day-card:hover{border-color:var(--dimmer);}
+.day-card.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.day-card.is-today{border-color:#4af0c8;}
+.day-card.is-today.active{border-color:var(--accent);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.card-head{padding:16px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.day-num{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.day-date-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--dimmer);margin-bottom:4px;}
+.day-date-lbl.today-lbl{color:#4af0c8;font-weight:500;}
+.wk-name{font-size:15px;font-weight:600;line-height:1.25;}
+.type-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.card-meta{padding:7px 20px;background:#12140e;border-bottom:1px solid var(--border);
+  display:flex;gap:10px;align-items:center;}
+.mpill{font-size:10px;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;}
+.mrpe{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+.ex-list{flex:1;padding:4px 0;}
+.ex-row{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 20px;border-bottom:1px solid #1e201a;gap:8px;transition:background .12s;}
+.ex-row:last-child{border-bottom:none;}
+.ex-row:hover{background:#21241b;}
+.ex-name{font-size:13px;color:var(--text);text-decoration:none;flex:1;line-height:1.3;transition:color .13s;}
+.ex-name:hover{color:var(--accent);}
+.ex-reps{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;
+  background:#12140e;padding:2px 7px;border-radius:4px;border:1px solid var(--border);}
+.yt-link{color:var(--muted);display:flex;align-items:center;opacity:.35;transition:opacity .13s;}
+.ex-row:hover .yt-link{opacity:.75;}
+.yt-link svg{width:13px;height:13px;}
+.card-footer{padding:8px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;
+  font-size:10px;color:var(--dimmer);transition:color .15s;}
+.day-card:hover .card-footer{color:var(--muted);}
+.day-card.active .card-footer{color:var(--accent);}
+.cf-arrow{font-size:12px;transition:transform .2s;}
+.day-card.active .cf-arrow{transform:rotate(180deg);}
+
+/* DETAIL PANEL */
+.detail-wrap{overflow:hidden;max-height:0;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;}
+.detail-wrap.open{max-height:3000px;opacity:1;}
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:12px;overflow:hidden;}
+.panel-hdr{display:flex;align-items:center;background:var(--tbl-hdr);border-bottom:1px solid var(--tbl-border);}
+.panel-wk-badge{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:white;
+  padding:10px 20px;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap;}
+.panel-title{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;color:white;padding:10px 20px;}
+.panel-close{margin-left:auto;padding:10px 16px;color:rgba(255,255,255,.5);
+  cursor:pointer;font-size:18px;line-height:1;transition:color .15s;}
+.panel-close:hover{color:white;}
+
+/* WORKOUT TABLE */
+.wo-table{width:100%;border-collapse:collapse;font-size:12px;}
+.wo-table thead th{background:#2a3420;color:#c0c8a8;
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.07em;
+  text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--tbl-border);
+  border-right:1px solid var(--tbl-border);text-align:center;white-space:nowrap;}
+.wo-table thead th:first-child{text-align:left;}
+.wo-table thead th:last-child{border-right:none;}
+.wo-table tbody tr:nth-child(odd) td{background:var(--tbl-row1);}
+.wo-table tbody tr:nth-child(even) td{background:var(--tbl-row2);}
+.wo-table tbody tr:hover td{background:#252819!important;}
+.wo-table tbody td{padding:10px;border-right:1px solid var(--tbl-border);
+  border-bottom:1px solid var(--tbl-border);color:var(--text);vertical-align:middle;text-align:center;}
+.wo-table tbody td:first-child{text-align:left;}
+.wo-table tbody td:last-child{border-right:none;text-align:left;}
+.wo-table tbody tr:last-child td{border-bottom:none;}
+.tbl-ex-link{color:#7ab8f0;text-decoration:underline;text-underline-offset:2px;font-size:12px;line-height:1.4;font-weight:500;}
+.tbl-ex-link:hover{color:var(--accent);}
+.sub-link{color:#6ab08a;text-decoration:underline;text-underline-offset:2px;font-size:11px;}
+.sub-link:hover{color:var(--accent);}
+.notes-cell{font-size:11px;color:#b0b89a;line-height:1.5;min-width:200px;max-width:320px;}
+.rpe-val{font-family:'DM Mono',monospace;font-size:12px;color:#f0c84a;cursor:help;position:relative;}
+.rest-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.num-val{font-family:'DM Mono',monospace;font-size:12px;}
+.border-upper{border-left:3px solid var(--upper)!important;}
+.border-pull{border-left:3px solid var(--pull)!important;}
+.border-push{border-left:3px solid var(--push)!important;}
+.border-legs{border-left:3px solid var(--legs)!important;}
+
+/* RPE TOOLTIP */
+.rpe-tip{position:relative;display:inline-block;}
+.rpe-tip .tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#2a3420;border:1px solid var(--accent);border-radius:6px;
+  padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text);
+  white-space:nowrap;z-index:100;pointer-events:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.rpe-tip:hover .tip{display:block;}
+.tip-title{font-weight:600;color:var(--accent);margin-bottom:2px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+
+/* WARMUP SECTION */
+.warmup-wrap{margin-top:12px;}
+.warmup-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;
+  text-transform:uppercase;transition:border-color .15s,color .15s;user-select:none;}
+.warmup-toggle:hover{border-color:var(--dimmer);color:var(--text);}
+.wu-arrow{font-size:12px;transition:transform .2s;}
+.warmup-toggle.open .wu-arrow{transform:rotate(180deg);}
+.warmup-body{overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .25s;opacity:0;}
+.warmup-body.open{max-height:800px;opacity:1;}
+.warmup-inner{background:var(--surface);border:1px solid var(--border);
+  border-top:none;border-radius:0 0 10px 10px;padding:20px 24px;}
+.wu-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.wu-section h3{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+.wu-row{display:flex;justify-content:space-between;align-items:baseline;
+  padding:6px 0;border-bottom:1px solid var(--border);gap:12px;}
+.wu-row:last-child{border-bottom:none;}
+.wu-ex{font-size:13px;color:var(--text);}
+.wu-sets{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;}
+.wu-pyramid{margin-top:8px;}
+.wu-pyramid-row{font-size:12px;color:var(--muted);padding:4px 0;
+  border-bottom:1px solid #1e201a;display:flex;gap:8px;}
+.wu-pyramid-row:last-child{border-bottom:none;}
+.wu-pyramid-row span{font-family:'DM Mono',monospace;color:var(--accent);font-size:11px;white-space:nowrap;}
+
+/* BLOCK TIMELINE */
+.timeline-wrap{margin-top:12px;}
+.timeline-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;
+  text-transform:uppercase;transition:border-color .15s,color .15s;user-select:none;}
+.timeline-toggle:hover{border-color:var(--dimmer);color:var(--text);}
+.tl-arrow{font-size:12px;transition:transform .2s;}
+.timeline-toggle.open .tl-arrow{transform:rotate(180deg);}
+.timeline-body{overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .25s;opacity:0;}
+.timeline-body.open{max-height:400px;opacity:1;}
+.timeline-inner{background:var(--surface);border:1px solid var(--border);
+  border-top:none;border-radius:0 0 10px 10px;padding:20px 24px;}
+.tl-track{display:flex;gap:3px;align-items:stretch;height:48px;}
+.tl-seg{border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:9px;font-weight:500;cursor:pointer;
+  transition:opacity .15s,filter .15s;position:relative;min-width:0;overflow:hidden;flex:1;}
+.tl-seg:hover{filter:brightness(1.2);}
+.tl-seg.tl-cur{outline:2px solid white;outline-offset:2px;}
+.tl-seg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;font-size:9px;}
+.tl-labels{display:flex;gap:3px;margin-top:6px;}
+.tl-lbl{flex:1;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center;}
+.tl-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;}
+.tl-li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.tl-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* PRINT BUTTON */
+.print-btn{font-family:'DM Mono',monospace;font-size:11px;padding:8px 16px;
+  border:1px solid var(--border);border-radius:6px;background:transparent;
+  color:var(--muted);cursor:pointer;transition:all .13s;letter-spacing:.06em;
+  text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.print-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* COLORS */
+.c-upper{color:var(--upper);} .c-pull{color:var(--pull);}
+.c-push{color:var(--push);} .c-legs{color:var(--legs);}
+.dot-upper{background:var(--upper);} .dot-pull{background:var(--pull);}
+.dot-push{background:var(--push);} .dot-legs{background:var(--legs);}
+
+/* PRINT STYLES */
+@media print{
+  body::before{display:none;}
+  .week-nav-wrap,.next-banner,.warmup-wrap,.timeline-wrap,.print-btn,
+  .card-footer,.panel-close{display:none!important;}
+  .day-card{break-inside:avoid;border:1px solid #ccc!important;box-shadow:none!important;}
+  .detail-wrap{max-height:none!important;opacity:1!important;overflow:visible!important;}
+  .detail-wrap.open{max-height:none!important;}
+  body,h1,.wk-name,.wk-title{color:#111!important;}
+  .shell{padding:16px;}
+  :root{--bg:white;--surface:#f5f5f5;--card:#fff;--border:#ddd;--text:#111;--muted:#555;}
+  .wo-table thead th{background:#3d4f2e!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .wo-table tbody tr:nth-child(odd) td{background:#f8f8f5!important;}
+  .wo-table tbody tr:nth-child(even) td{background:#fff!important;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- HEADER -->
+<header class="site-header">
+  <div>
+    <div class="prog-tag">// Jeff Nippard · Bodybuilding Transformation System · Beginner</div>
+    <h1>3-DAY <span>UPPER</span> FOCUS</h1>
+    <div class="header-meta">
+      <span><strong>16</strong> calendar weeks</span>
+      <span><strong>4</strong>-workout rotation · Tue / Thu / Sun</span>
+      <span>07 May – 31 Aug 2026</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="print-btn" onclick="window.print()">⎙ Print week</button>
+    <div class="stat-box"><div class="n" style="color:var(--accent)">3</div><div class="l">days/week</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--pull)">4</div><div class="l">workouts</div></div>
+  </div>
+</header>
+
+<!-- NEXT SESSION BANNER -->
+<div class="next-banner" id="nextBanner"></div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="li"><div class="ldot" style="background:var(--upper)"></div>Upper — strength</div>
+  <div class="li"><div class="ldot" style="background:var(--pull)"></div>Pull — strength</div>
+  <div class="li"><div class="ldot" style="background:var(--push)"></div>Push — hypertrophy</div>
+  <div class="li"><div class="ldot" style="background:var(--legs)"></div>Legs — hypertrophy</div>
+  <div class="sep"></div>
+  <div class="li"><span class="bpill pf">Foundation</span>Cal wks 1-2 · RPE 6-7</div>
+  <div class="li"><span class="bpill pa">Accumulation</span>Cal wks 4-6 · RPE 7-8</div>
+  <div class="li"><span class="bpill pi">Intensification</span>Cal wks 8-12 · RPE 8-9</div>
+  <div class="li"><span class="bpill pd">Deload</span>Cal wk 13</div>
+  <div class="li"><span class="bpill pp">Peaking</span>Cal wks 15-16</div>
+</div>
+
+<!-- WARMUP -->
+<div class="warmup-wrap">
+  <div class="warmup-toggle" id="warmupToggle" onclick="toggleWarmup()">
+    <span class="wu-arrow">▼</span>
+    <span>Warm-up protocol (every session)</span>
+  </div>
+  <div class="warmup-body" id="warmupBody">
+    <div class="warmup-inner">
+      <div class="wu-grid">
+        <div>
+          <h3>General Warm-Up · 5-10 min</h3>
+          <div class="wu-row"><span class="wu-ex">Light cardio (treadmill / bike / stairmaster)</span><span class="wu-sets">5-10 min</span></div>
+          <div class="wu-row"><span class="wu-ex">Arm swings</span><span class="wu-sets">10 reps / side</span></div>
+          <div class="wu-row"><span class="wu-ex">Arm circles</span><span class="wu-sets">10 reps / side</span></div>
+          <div class="wu-row"><span class="wu-ex">Front-to-back leg swings</span><span class="wu-sets">10 reps / side</span></div>
+          <div class="wu-row"><span class="wu-ex">Side-to-side leg swings</span><span class="wu-sets">10 reps / side</span></div>
+          <div class="wu-row"><span class="wu-ex">Cable external rotation (optional)</span><span class="wu-sets">15 reps / side</span></div>
+        </div>
+        <div>
+          <h3>Exercise-Specific Warm-Up</h3>
+          <div class="wu-row"><span class="wu-ex"><strong>1 warm-up set listed</strong></span><span class="wu-sets">~60% × 6-10 reps</span></div>
+          <div style="margin-top:10px;margin-bottom:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">2 warm-up sets — mini pyramid</div>
+          <div class="wu-pyramid-row">Set 1 <span>~50% × 6-10 reps</span></div>
+          <div class="wu-pyramid-row">Set 2 <span>~70% × 4-6 reps</span></div>
+          <div style="margin-top:10px;margin-bottom:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">3 warm-up sets — full pyramid</div>
+          <div class="wu-pyramid-row">Set 1 <span>~45% × 6-10 reps</span></div>
+          <div class="wu-pyramid-row">Set 2 <span>~65% × 4-6 reps</span></div>
+          <div class="wu-pyramid-row">Set 3 <span>~85% × 3-4 reps</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOCK TIMELINE -->
+<div class="timeline-wrap" style="margin-top:8px;">
+  <div class="timeline-toggle" id="tlToggle" onclick="toggleTimeline()">
+    <span class="tl-arrow">▼</span>
+    <span>16-week block overview</span>
+  </div>
+  <div class="timeline-body" id="tlBody">
+    <div class="timeline-inner">
+      <div class="tl-track" id="tlTrack"></div>
+      <div class="tl-labels" id="tlLabels"></div>
+      <div class="tl-legend">
+        <div class="tl-li"><div class="tl-dot pf" style="background:#c8f04a55;border:1px solid #c8f04a"></div>Foundation (wks 1-2)</div>
+        <div class="tl-li"><div class="tl-dot" style="background:#c8f04a22;border:1px solid #c8f04a66"></div>Transition</div>
+        <div class="tl-li"><div class="tl-dot" style="background:#4af0c855;border:1px solid #4af0c8"></div>Accumulation (wks 4-6)</div>
+        <div class="tl-li"><div class="tl-dot" style="background:#f0c84a55;border:1px solid #f0c84a"></div>Intensification (wks 8-12)</div>
+        <div class="tl-li"><div class="tl-dot" style="background:#a0a09055;border:1px solid #a0a090"></div>Deload (wk 13)</div>
+        <div class="tl-li"><div class="tl-dot" style="background:#e87aff55;border:1px solid #e87aff"></div>Peaking (wks 15-16)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WEEK NAV -->
+<div class="week-nav-wrap" style="margin-top:20px;">
+  <div class="nav-lbl">Week →</div>
+  <div class="pills" id="pills"></div>
+</div>
+
+<div class="week-hdr" id="weekHdr"></div>
+<div class="day-grid" id="dayGrid"></div>
+<div class="detail-wrap" id="detailWrap">
+  <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+const YT=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.75 15.5v-7l6.25 3.5-6.25 3.5z"/></svg>`;
+
+/* ── SESSION DATES (Tue/Thu/Sun; wk1 special: Wed 07 May, Sun 11 May, Sat 17 May) ── */
+const SESSION_DATES = [
+  {calWk:1, day:1, date:"2026-05-07", label:"Wed 07 May"},
+  {calWk:1, day:2, date:"2026-05-11", label:"Sun 11 May"},
+  {calWk:1, day:3, date:"2026-05-17", label:"Sat 17 May"},
+  {calWk:2, day:1, date:"2026-05-20", label:"Tue 20 May"},
+  {calWk:2, day:2, date:"2026-05-22", label:"Thu 22 May"},
+  {calWk:2, day:3, date:"2026-05-25", label:"Sun 25 May"},
+  {calWk:3, day:1, date:"2026-05-27", label:"Tue 27 May"},
+  {calWk:3, day:2, date:"2026-05-29", label:"Thu 29 May"},
+  {calWk:3, day:3, date:"2026-06-01", label:"Sun 01 Jun"},
+  {calWk:4, day:1, date:"2026-06-03", label:"Tue 03 Jun"},
+  {calWk:4, day:2, date:"2026-06-05", label:"Thu 05 Jun"},
+  {calWk:4, day:3, date:"2026-06-08", label:"Sun 08 Jun"},
+  {calWk:5, day:1, date:"2026-06-10", label:"Tue 10 Jun"},
+  {calWk:5, day:2, date:"2026-06-12", label:"Thu 12 Jun"},
+  {calWk:5, day:3, date:"2026-06-15", label:"Sun 15 Jun"},
+  {calWk:6, day:1, date:"2026-06-17", label:"Tue 17 Jun"},
+  {calWk:6, day:2, date:"2026-06-19", label:"Thu 19 Jun"},
+  {calWk:6, day:3, date:"2026-06-22", label:"Sun 22 Jun"},
+  {calWk:7, day:1, date:"2026-06-24", label:"Tue 24 Jun"},
+  {calWk:7, day:2, date:"2026-06-26", label:"Thu 26 Jun"},
+  {calWk:7, day:3, date:"2026-06-29", label:"Sun 29 Jun"},
+  {calWk:8, day:1, date:"2026-07-01", label:"Tue 01 Jul"},
+  {calWk:8, day:2, date:"2026-07-03", label:"Thu 03 Jul"},
+  {calWk:8, day:3, date:"2026-07-06", label:"Sun 06 Jul"},
+  {calWk:9, day:1, date:"2026-07-08", label:"Tue 08 Jul"},
+  {calWk:9, day:2, date:"2026-07-10", label:"Thu 10 Jul"},
+  {calWk:9, day:3, date:"2026-07-13", label:"Sun 13 Jul"},
+  {calWk:10, day:1, date:"2026-07-15", label:"Tue 15 Jul"},
+  {calWk:10, day:2, date:"2026-07-17", label:"Thu 17 Jul"},
+  {calWk:10, day:3, date:"2026-07-20", label:"Sun 20 Jul"},
+  {calWk:11, day:1, date:"2026-07-22", label:"Tue 22 Jul"},
+  {calWk:11, day:2, date:"2026-07-24", label:"Thu 24 Jul"},
+  {calWk:11, day:3, date:"2026-07-27", label:"Sun 27 Jul"},
+  {calWk:12, day:1, date:"2026-07-29", label:"Tue 29 Jul"},
+  {calWk:12, day:2, date:"2026-07-31", label:"Thu 31 Jul"},
+  {calWk:12, day:3, date:"2026-08-03", label:"Sun 03 Aug"},
+  {calWk:13, day:1, date:"2026-08-05", label:"Tue 05 Aug"},
+  {calWk:13, day:2, date:"2026-08-07", label:"Thu 07 Aug"},
+  {calWk:13, day:3, date:"2026-08-10", label:"Sun 10 Aug"},
+  {calWk:14, day:1, date:"2026-08-12", label:"Tue 12 Aug"},
+  {calWk:14, day:2, date:"2026-08-14", label:"Thu 14 Aug"},
+  {calWk:14, day:3, date:"2026-08-17", label:"Sun 17 Aug"},
+  {calWk:15, day:1, date:"2026-08-19", label:"Tue 19 Aug"},
+  {calWk:15, day:2, date:"2026-08-21", label:"Thu 21 Aug"},
+  {calWk:15, day:3, date:"2026-08-24", label:"Sun 24 Aug"},
+  {calWk:16, day:1, date:"2026-08-26", label:"Tue 26 Aug"},
+  {calWk:16, day:2, date:"2026-08-28", label:"Thu 28 Aug"},
+  {calWk:16, day:3, date:"2026-08-31", label:"Sun 31 Aug"},
+];
+
+/* ── WORKOUT DATA ── */
+const WO = {
+  upper:{label:'Upper — strength focus',type:'upper',title:'UPPER (STRENGTH FOCUS)',ex:[
+    {n:'45° Incline Barbell Press',url:'https://youtu.be/b8fYnZ-usP0',tech:'N/A',warm:'2-3',work:'1',reps:'6-8',erpe:'N/A',lrpe:'~6',rest:'3-5 min',
+     sub1:{n:'45° Incline DB Press',url:'https://www.youtube.com/watch?v=p2t9daxLpB8'},sub2:{n:'45° Incline Machine Press',url:'https://youtu.be/CI88L1VNvEs?si=UjPZ3Ep5QaYBM5rC'},
+     notes:'1 second pause at the bottom of each rep while maintaining tension on the pecs.'},
+    {n:'Cable Crossover Ladder',url:'https://youtu.be/qJzc-iHKGdg?si=GGd61Dr4uoDUI9b6',tech:'N/A',warm:'1-2',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'Pec Deck',url:'https://youtu.be/IYXRrYXfVLc?si=8eUNzIQ9o7Y-XpSp'},sub2:{n:'Bottom-Half DB Flye',url:'https://youtu.be/IYXRrYXfVLc?si=8eUNzIQ9o7Y-XpSp'},
+     notes:'Do one set with low, one with medium, one with high cable position. Choose 1-2 positions if limited.'},
+    {n:'Wide-Grip Pull-Up',url:'https://youtu.be/NwQ5Ch5t5Vk?si=JHztlva6LI2NPBDC',tech:'N/A',warm:'1-2',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~6',rest:'2-3 min',
+     sub1:{n:'Wide-Grip Lat Pulldown',url:'https://youtu.be/8m2jNHBP580?si=a4KGz2Dm0gRioyBG'},sub2:{n:'Dual-Handle Lat Pulldown',url:'https://youtu.be/8m2jNHBP580?si=a4KGz2Dm0gRioyBG'},
+     notes:'1.5x shoulder width overhand grip. Slow 2-3 second negative. Feel your lats pulling apart on the way down.'},
+    {n:'High-Cable Lateral Raise',url:'https://www.youtube.com/watch?v=BmYuAG2j2co',tech:'N/A',warm:'1-2',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~6',rest:'1-2 min',
+     sub1:{n:'High-Cable Cuffed Lateral Raise',url:'https://youtu.be/Wmivm40AV3Q?si=pAcxmzGxP16bt5I5'},sub2:{n:'Lean-In DB Lateral Raise',url:'https://youtu.be/Wmivm40AV3Q?si=pAcxmzGxP16bt5I5'},
+     notes:'Focus on squeezing your lateral delt to move the weight.'},
+    {n:'Pendlay Deficit Row',url:'https://youtu.be/roKtfQZbxzg?si=x0BVOCTXzrksYhHL',tech:'N/A',warm:'1-2',work:'1',reps:'6-8',erpe:'N/A',lrpe:'~6',rest:'2-3 min',
+     sub1:{n:'Smith Machine Row',url:'https://youtu.be/GYoUoVNlbGc?si=mKlJH3mz_e7-RCu0'},sub2:{n:'Single-Arm DB Row',url:'https://youtu.be/GYoUoVNlbGc?si=mKlJH3mz_e7-RCu0'},
+     notes:'Stand on a bumper plate. Focus on getting a big stretch and touch your stomach/chest on each rep!'},
+    {n:'Overhead Cable Triceps Extension (Bar)',url:'https://youtu.be/fbLTzgTKOR8?si=z-O6SNR4HG4rd09j',tech:'N/A',warm:'1',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'OHC Triceps Extension (Rope)',url:'https://youtu.be/jQ9rkfvAbIc?si=m1Q5OHGTNvhD6TZ9'},sub2:{n:'DB Skull Crusher',url:'https://youtu.be/jQ9rkfvAbIc?si=m1Q5OHGTNvhD6TZ9'},
+     notes:'Optionally pause for 0.5-1 second in the stretched aspect of each rep.'},
+    {n:'Bayesian Cable Curl',url:'https://youtu.be/Z0NIYS9nyoQ?si=PgrGaJLln2uZLfnY',tech:'N/A',warm:'1',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'Seated Super-Bayesian High Cable Curl',url:'https://youtu.be/CWH5J_7kzjM?si=FlPzreLDPHogRxve'},sub2:{n:'Incline DB Stretch Curl',url:'https://youtu.be/CWH5J_7kzjM?si=FlPzreLDPHogRxve'},
+     notes:'If you have a left-right bicep size imbalance, do these 1 arm at a time. Otherwise, do both arms at the same time.'},
+  ]},
+  pull:{label:'Pull — strength focus',type:'pull',title:'PULL (STRENGTH FOCUS)',ex:[
+    {n:'Neutral-Grip Lat Pulldown',url:'https://youtu.be/NwQ5Ch5t5Vk?si=JHztlva6LI2NPBDC',tech:'N/A',warm:'2-3',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~6',rest:'2-3 min',
+     sub1:{n:'Neutral-Grip Pull-Up',url:'https://youtu.be/b0ypSz63UGo?si=dMxuJGtxkR4jnUbb'},sub2:{n:'Dual-Handle Lat Pulldown',url:'https://youtu.be/b0ypSz63UGo?si=dMxuJGtxkR4jnUbb'},
+     notes:"Pull with the handle more out in front of you, like a cross between a pullover and a pulldown. Focus on feeling your lats working more than the weight you're using."},
+    {n:'Chest-Supported Machine Row',url:'https://youtu.be/okCWuhxJEvw?si=-Q9-BAJbFeebhfpF',tech:'N/A',warm:'2-3',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~6',rest:'2-3 min',
+     sub1:{n:'Chest-Supported T-Bar Row',url:'https://youtu.be/q8qlHwcuOtc?si=J-TyFYuv9rwi5VTy'},sub2:{n:'Incline Chest-Supported DB Row',url:'https://youtu.be/q8qlHwcuOtc?si=J-TyFYuv9rwi5VTy'},
+     notes:'Flare elbows out at roughly 45° and squeeze your shoulder blades together hard at the top of each rep.'},
+    {n:'1-Arm 45° Cable Rear Delt Flye',url:'https://youtu.be/Y8fb_rtEU_4?si=nwaICiwwS3TatSq1',tech:'N/A',warm:'1-2',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'Rope Face Pull',url:'https://youtu.be/GhrVM-jPIEA?si=_qGmAZLOCDUWVHy_'},sub2:{n:'Reverse Pec Deck',url:'https://youtu.be/GhrVM-jPIEA?si=_qGmAZLOCDUWVHy_'},
+     notes:'Pause for 1-2 seconds in the squeeze of each rep. Contract the rear delts hard!'},
+    {n:'Machine Shrug',url:'https://youtu.be/moFqLlptX7Q?si=vsQXeROXKVa3beB7',tech:'N/A',warm:'2-3',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~6',rest:'1-2 min',
+     sub1:{n:'Cable Paused Shrug-In',url:'https://youtu.be/Hy6f1Lz_PiA?si=MTEbKv_uMCL6zvge'},sub2:{n:'DB Shrug',url:'https://youtu.be/Hy6f1Lz_PiA?si=MTEbKv_uMCL6zvge'},
+     notes:'Brief pause at the top and bottom of ROM. Think about pulling your shoulders up to your ears!'},
+    {n:'EZ-Bar Cable Curl',url:'https://youtu.be/XxGCRSJmgwY?si=4ohHVIRqih3xCbD0',tech:'N/A',warm:'1',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'EZ-Bar Curl',url:'https://youtu.be/WMrgn4GG7mI?si=0dUmQt-g_zOMm14G'},sub2:{n:'DB Curl',url:'https://youtu.be/WMrgn4GG7mI?si=0dUmQt-g_zOMm14G'},
+     notes:'Set up the cable at the lowest position. Maintain constant tension on the biceps. Slow, controlled reps!'},
+    {n:'Machine Preacher Curl',url:'https://youtu.be/WTkQLAethtg?si=FftNs9g0OeiVccy2',tech:'N/A',warm:'1',work:'1',reps:'12-15',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'EZ-Bar Preacher Curl',url:'https://youtu.be/Dn7qgf9iSH8?si=mCWsykyTRl0jYKA0'},sub2:{n:'DB Preacher Curl',url:'https://youtu.be/Dn7qgf9iSH8?si=mCWsykyTRl0jYKA0'},
+     notes:'Smooth, controlled reps. Mind-muscle connection with the biceps.'},
+  ]},
+  push:{label:'Push — hypertrophy focus',type:'push',title:'PUSH (HYPERTROPHY FOCUS)',ex:[
+    {n:'Barbell Bench Press',url:'https://youtu.be/zGXvPjlgVkk?si=sTJq1mF8qaCapYbx',tech:'N/A',warm:'2-4',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~7',rest:'3-5 min',
+     sub1:{n:'Machine Chest Press',url:'https://youtu.be/SCQVmN1gYsk?si=Enyh4L6ZDiCc6RyU'},sub2:{n:'DB Bench Press',url:'https://youtu.be/SCQVmN1gYsk?si=Enyh4L6ZDiCc6RyU'},
+     notes:'Set up a comfortable arch, quick pause on the chest and explode up on each rep.'},
+    {n:'Machine Shoulder Press',url:'https://youtu.be/B8PB5RPhTWQ?si=JQ8J3qbCDkUCGtt5',tech:'N/A',warm:'2-3',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~7',rest:'2-3 min',
+     sub1:{n:'Cable Shoulder Press',url:'https://youtu.be/1LhGmhVFe2Y?si=vTZPhYePzGkU4I-g'},sub2:{n:'Seated DB Shoulder Press',url:'https://youtu.be/1LhGmhVFe2Y?si=vTZPhYePzGkU4I-g'},
+     notes:'Ensure that your elbows break at least 90°. Mind-muscle connection with your delts. Smooth, controlled reps.'},
+    {n:'Bottom-Half DB Flye',url:'https://youtu.be/1LhGmhVFe2Y?si=vTZPhYePzGkU4I-g',tech:'N/A',warm:'1-2',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~8',rest:'1-2 min',
+     sub1:{n:'Bottom-Half Seated Cable Flye',url:'https://youtu.be/OfjncdW_Vyc?si=kiSMQzlVHKNIQJ7J'},sub2:{n:'Low-to-High Cable Crossover',url:'https://youtu.be/OfjncdW_Vyc?si=kiSMQzlVHKNIQJ7J'},
+     notes:'All reps in the bottom half of the ROM. Focus on feeling a deep stretch in your pecs at the bottom of each rep.'},
+    {n:'High-Cable Lateral Raise',url:'https://www.youtube.com/watch?v=BmYuAG2j2co',tech:'N/A',warm:'1',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~8',rest:'1-2 min',
+     sub1:{n:'High-Cable Cuffed Lateral Raise',url:'https://youtu.be/tsJMV9Gxw-o?si=RBV8vCl6CNAx22eD'},sub2:{n:'Lean-In DB Lateral Raise',url:'https://youtu.be/tsJMV9Gxw-o?si=RBV8vCl6CNAx22eD'},
+     notes:'Focus on squeezing your lateral delt to move the weight.'},
+    {n:'Overhead Cable Triceps Extension (Bar)',url:'https://youtu.be/fbLTzgTKOR8?si=z-O6SNR4HG4rd09j',tech:'N/A',warm:'1',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~8',rest:'1-2 min',
+     sub1:{n:'OHC Triceps Extension (Rope)',url:'https://youtu.be/nQL5ieH39sw?si=RjZSWBZ3CGKg-pax'},sub2:{n:'DB Skull Crusher',url:'https://youtu.be/nQL5ieH39sw?si=RjZSWBZ3CGKg-pax'},
+     notes:'Optionally pause for 0.5-1 second in the stretched aspect of each rep.'},
+    {n:'Cable Triceps Kickback',url:'https://youtu.be/3CaIq8jZe18?si=ZWFiM0R-hqcvpiQj',tech:'N/A',warm:'1',work:'1',reps:'12-15',erpe:'N/A',lrpe:'~8',rest:'1-2 min',
+     sub1:{n:'DB Triceps Kickback',url:'https://youtu.be/rGqwkinWqYI?si=-ygKr5ZOwrYdG0fX'},sub2:{n:'Bench Dip',url:'https://youtu.be/rGqwkinWqYI?si=-ygKr5ZOwrYdG0fX'},
+     notes:"Upright or bent over — whichever feels better. At full squeeze, shoulder should be behind your torso."},
+    {n:'Lying Leg Raise',url:'https://youtu.be/-XVRl8KU7x0?si=o46w1tp8fNYfD-gU',tech:'N/A',warm:'1-2',work:'1',reps:'10-20',erpe:'N/A',lrpe:'~8',rest:'1-2 min',
+     sub1:{n:'Hanging Leg Raise',url:'https://youtu.be/YdUUYFgpA7g?si=IiD6eODwVqDS3WlB'},sub2:{n:'Modified Candlestick',url:'https://youtu.be/YdUUYFgpA7g?si=IiD6eODwVqDS3WlB'},
+     notes:'Perform these slowly, focus on keeping your lower back against the ground throughout the set.'},
+  ]},
+  legs:{label:'Legs — hypertrophy focus',type:'legs',title:'LEGS (HYPERTROPHY FOCUS)',ex:[
+    {n:'Leg Press',url:'https://youtu.be/BC_eDtrB-M4?si=lhut9GRQ9n9g82Mz',tech:'N/A',warm:'2-4',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~6',rest:'2-3 min',
+     sub1:{n:'Smith Machine Static Lunge',url:'https://youtu.be/fzpYiRtzmFA?si=M3BGSywSskWqGRnE'},sub2:{n:'DB Walking Lunge',url:'https://youtu.be/fzpYiRtzmFA?si=M3BGSywSskWqGRnE'},
+     notes:'Feet lower on the platform for more quad focus. Get as deep as you can without excessive back rounding. Slight pause at the bottom.'},
+    {n:'Seated Leg Curl',url:'https://youtu.be/fzpYiRtzmFA?si=M3BGSywSskWqGRnE',tech:'N/A',warm:'1-2',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'Lying Leg Curl',url:'https://youtu.be/S6DTPNZ_-F4?si=y3rx6TaVEuUONiI2'},sub2:{n:'Nordic Ham Curl',url:'https://youtu.be/S6DTPNZ_-F4?si=y3rx6TaVEuUONiI2'},
+     notes:'Lean forward over the machine to get a maximum stretch in your hamstrings.'},
+    {n:'Walking Lunge',url:'https://youtu.be/S2agsLlUSII?si=ZbM6zqY3sC151i0A',tech:'N/A',warm:'2-3',work:'1',reps:'8-10',erpe:'N/A',lrpe:'~6',rest:'2-3 min',
+     sub1:{n:'DB Step-Up',url:'https://youtu.be/SEjKxJGg_C8?si=I_mi9RO4vFVVhFER'},sub2:{n:'Goblet Squat',url:'https://youtu.be/SEjKxJGg_C8?si=I_mi9RO4vFVVhFER'},
+     notes:'Take medium strides. Minimize contribution from the back leg.'},
+    {n:'Machine Hip Abduction',url:'https://youtu.be/sOYvvFPYdsU?si=QAdyWBV_5NAX2CtW',tech:'N/A',warm:'1-2',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'Cable Hip Abduction',url:'https://youtu.be/552L1K3Rb_Q?si=bwLZLzHR0AHulO9I'},sub2:{n:'Lateral Band Walk',url:'https://youtu.be/552L1K3Rb_Q?si=bwLZLzHR0AHulO9I'},
+     notes:'Use pads to increase ROM. Lean forward and grab the machine rails to stretch the glutes further.'},
+    {n:'Standing Calf Raise',url:'https://youtu.be/S6DTPNZ_-F4?si=y3rx6TaVEuUONiI2',tech:'N/A',warm:'1-2',work:'1',reps:'10-12',erpe:'N/A',lrpe:'~7',rest:'1-2 min',
+     sub1:{n:'Seated Calf Raise',url:'https://youtu.be/6pfj0G7VKdM?si=bXJmuLkyC3E3PYHW'},sub2:{n:'Leg Press Calf Press',url:'https://youtu.be/6pfj0G7VKdM?si=bXJmuLkyC3E3PYHW'},
+     notes:'1-2 second pause at the bottom. Think about rolling your ankle back and forth on the balls of your feet.'},
+  ]}
+};
+
+/* ── SCHEDULE ── */
+const CAL_BLOCK=['f','f','fx','a','a','a','ax','i','i','i','i','i','d','dx','p','p'];
+const PINFO={1:'f',2:'f',3:'a',4:'a',5:'a',6:'i',7:'i',8:'i',9:'i',10:'d',11:'p',12:'p'};
+const PLABEL={f:'Foundation',fx:'Foundation → Accumulation',a:'Accumulation',ax:'Accumulation → Intensification',i:'Intensification',d:'Deload',dx:'Deload → Peaking',p:'Peaking'};
+const PRPE={f:'RPE 6-7',fx:'RPE 6-8',a:'RPE 7-8',ax:'RPE 7-9',i:'RPE 8-9',d:'RPE 5-6',dx:'RPE 6-9',p:'RPE 9+'};
+const PCLS={f:'pf',fx:'pf',a:'pa',ax:'pa',i:'pi',d:'pd',dx:'pd',p:'pp'};
+const RPE_TIP={
+  '~6':'~6 — 4 reps left in the tank. Relatively easy, focusing on technique.',
+  '~7':'~7 — 3 reps left. Moderate effort, weight moves smoothly.',
+  '~8':'~8 — 2 reps left. Challenging but controlled.',
+  '~9':'~9 — 1 rep left. Very hard. Near-maximal effort.',
+  'N/A':'N/A — early sets match the last-set RPE or slightly lower.'
+};
+
+const order=['upper','pull','push','legs'];
+const sessions=[];
+for(let pw=1;pw<=12;pw++) for(const wt of order) sessions.push({pw,wt});
+const calWeeks=[];
+for(let i=0;i<sessions.length;i+=3) calWeeks.push(sessions.slice(i,i+3));
+
+/* ── DATE UTILS ── */
+function todayStr(){
+  const t=new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+function daysBetween(a,b){
+  return Math.round((new Date(b)-new Date(a))/(1000*60*60*24));
+}
+function findCurrentWeek(){
+  const today=todayStr();
+  // find next upcoming session
+  const upcoming=SESSION_DATES.find(s=>s.date>=today);
+  if(!upcoming) return 16;
+  return upcoming.calWk;
+}
+function getSessionsForWeek(calWk){
+  return SESSION_DATES.filter(s=>s.calWk===calWk);
+}
+
+/* ── NEXT SESSION BANNER ── */
+function renderBanner(){
+  const today=todayStr();
+  const upcoming=SESSION_DATES.filter(s=>s.date>=today);
+  const past=SESSION_DATES.filter(s=>s.date<today);
+  const banner=document.getElementById('nextBanner');
+  if(!upcoming.length){banner.innerHTML='<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">Programme complete — well done!</span>';return;}
+
+  const next=upcoming[0];
+  const nextSession=calWeeks[next.calWk-1][next.day-1];
+  const nextWO=WO[nextSession.wt];
+  const daysAway=daysBetween(today,next.date);
+  const isToday=daysAway===0;
+  const countdownTxt=isToday?'TODAY':daysAway===1?'Tomorrow':`in ${daysAway} days`;
+
+  const prevSession=past.length?past[past.length-1]:null;
+  let prevHtml='';
+  if(prevSession){
+    const ps=calWeeks[prevSession.calWk-1][prevSession.day-1];
+    const pw=WO[ps.wt];
+    prevHtml=`<div class="next-sep"></div>
+    <div class="prev-session">
+      <span class="prev-label">Last</span>
+      <span class="prev-info">${prevSession.label} — <span class="c-${pw.type}">${pw.label}</span></span>
+    </div>`;
+  }
+
+  banner.innerHTML=`
+    <div>
+      <div class="next-label">Next session</div>
+      <div class="next-session">
+        <div class="next-date">${next.label}</div>
+        <div>
+          <div class="next-workout c-${nextWO.type}">${nextWO.label}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px">Cal wk ${next.calWk} · Day ${next.day}</div>
+        </div>
+        <div class="next-countdown${isToday?' today':''}">${countdownTxt}</div>
+      </div>
+    </div>
+    ${prevHtml}
+`;
+}
+
+/* ── TABLE ── */
+function rpeCell(val){
+  const tip=RPE_TIP[val]||val;
+  return `<span class="rpe-tip"><span class="rpe-val">${val}</span><span class="tip"><div class="tip-title">RPE ${val}</div>${tip}</span></span>`;
+}
+function buildTable(wt){
+  const w=WO[wt];
+  const rows=w.ex.map(e=>`<tr>
+    <td class="border-${wt}" style="min-width:160px"><a class="tbl-ex-link" href="${e.url}" target="_blank">${e.n}</a></td>
+    <td class="num-val">${e.warm}</td>
+    <td class="num-val">${e.work}</td>
+    <td class="num-val">${e.reps}</td>
+    <td>${rpeCell(e.erpe)}</td>
+    <td>${rpeCell(e.lrpe)}</td>
+    <td class="rest-val">${e.rest}</td>
+    <td style="min-width:130px"><a class="sub-link" href="${e.sub1.url}" target="_blank">${e.sub1.n}</a></td>
+    <td style="min-width:130px"><a class="sub-link" href="${e.sub2.url}" target="_blank">${e.sub2.n}</a></td>
+    <td class="notes-cell">${e.notes}</td>
+  </tr>`).join('');
+  return `<div style="overflow-x:auto"><table class="wo-table">
+    <thead><tr>
+      <th style="text-align:left">Exercise</th>
+      <th>Warm-Up Sets</th><th>Working Sets</th><th>Reps</th>
+      <th>Early Set RPE</th><th>Last Set RPE</th><th>Rest</th>
+      <th>Substitution 1</th><th>Substitution 2</th><th>Notes</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+/* ── TIMELINE ── */
+function renderTimeline(){
+  const tlColors={f:'#c8f04a55',fx:'#c8f04a22',a:'#4af0c855',ax:'#4af0c822',i:'#f0c84a55',d:'#a0a09055',dx:'#a0a09022',p:'#e87aff55'};
+  const tlBorder={f:'#c8f04a',fx:'#c8f04a66',a:'#4af0c8',ax:'#4af0c866',i:'#f0c84a',d:'#a0a090',dx:'#a0a09066',p:'#e87aff'};
+  const tlText={f:'#c8f04a',fx:'#c8f04a88',a:'#4af0c8',ax:'#4af0c888',i:'#f0c84a',d:'#a0a090',dx:'#a0a09088',p:'#e87aff'};
+  const shortName={f:'Foundation',fx:'→',a:'Accumulation',ax:'→',i:'Intensification',d:'Deload',dx:'→',p:'Peaking'};
+
+  const track=CAL_BLOCK.map((bl,i)=>{
+    const wk=i+1;
+    const isCur=wk===curWeek;
+    return `<div class="tl-seg${isCur?' tl-cur':''}"
+      style="background:${tlColors[bl]};border:1px solid ${tlBorder[bl]};color:${tlText[bl]};"
+      onclick="go(${wk})" title="Week ${wk} — ${PLABEL[bl]}">
+      <span>${wk}</span>
+    </div>`;
+  }).join('');
+
+  const labels=CAL_BLOCK.map((_,i)=>`<div class="tl-lbl">${i+1}</div>`).join('');
+  document.getElementById('tlTrack').innerHTML=track;
+  document.getElementById('tlLabels').innerHTML=labels;
+}
+
+/* ── TOGGLES ── */
+function toggleWarmup(){
+  const t=document.getElementById('warmupToggle');
+  const b=document.getElementById('warmupBody');
+  t.classList.toggle('open'); b.classList.toggle('open');
+  t.querySelector('.wu-arrow').textContent=t.classList.contains('open')?'▲':'▼';
+}
+function toggleTimeline(){
+  const t=document.getElementById('tlToggle');
+  const b=document.getElementById('tlBody');
+  t.classList.toggle('open'); b.classList.toggle('open');
+  t.querySelector('.tl-arrow').textContent=t.classList.contains('open')?'▲':'▼';
+}
+
+/* ── MAIN RENDER ── */
+let curWeek=1, activeDay=null;
+
+function render(){
+  const today=todayStr();
+  const weekDates=getSessionsForWeek(curWeek);
+  const todayInWeek=weekDates.find(s=>s.date===today);
+
+  // pills
+  document.getElementById('pills').innerHTML=calWeeks.map((_,i)=>{
+    const wk=i+1;
+    const wkDates=getSessionsForWeek(wk);
+    const hasToday=wkDates.some(s=>s.date===today);
+    const isCurrent=wk===curWeek;
+    return `<button class="wp${isCurrent?' active':''}${hasToday?' has-today':''}" onclick="go(${wk})">${wk}</button>`;
+  }).join('');
+
+  const pws=[...new Set(calWeeks[curWeek-1].map(s=>s.pw))];
+  const bl=CAL_BLOCK[curWeek-1];
+
+  document.getElementById('weekHdr').innerHTML=
+    `<div class="wk-title">WEEK ${curWeek}</div>
+     <div class="wk-sub">Program week${pws.length>1?'s':''} ${pws.join(' & ')}</div>
+     <span class="bpill ${PCLS[bl]}">${PLABEL[bl]} · ${PRPE[bl]}</span>`;
+
+  document.getElementById('dayGrid').innerHTML=calWeeks[curWeek-1].map((s,i)=>{
+    const w=WO[s.wt];
+    const bl2=PINFO[s.pw];
+    const sd=weekDates[i];
+    const isToday=sd&&sd.date===today;
+    return `<div class="day-card${activeDay===i?' active':''}${isToday?' is-today':''}" style="animation-delay:${i*.08}s" onclick="toggleDay(${i})">
+      <div class="card-head">
+        <div>
+          <div class="day-num">Day ${i+1}</div>
+          <div class="day-date-lbl${isToday?' today-lbl':''}">${sd?sd.label:''}${isToday?' · Today':''}</div>
+          <div class="wk-name c-${w.type}">${w.label}</div>
+        </div>
+        <div class="type-dot dot-${w.type}"></div>
+      </div>
+      <div class="card-meta">
+        <span class="mpill ${PCLS[bl2]}">${PLABEL[bl2]}</span>
+        <span class="mrpe">Prog wk ${s.pw} · ${PRPE[bl2]}</span>
+      </div>
+      <div class="ex-list">
+        ${w.ex.map(e=>`<div class="ex-row">
+          <a class="ex-name" href="${e.url}" target="_blank" onclick="event.stopPropagation()">${e.n}</a>
+          <span class="ex-reps">${e.reps}</span>
+          <a class="yt-link" href="${e.url}" target="_blank" onclick="event.stopPropagation()">${YT}</a>
+        </div>`).join('')}
+      </div>
+      <div class="card-footer">
+        <span class="cf-arrow">▼</span>
+        <span>${activeDay===i?'close full table':'view full table'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // detail panel
+  const wrap=document.getElementById('detailWrap');
+  if(activeDay!==null){
+    const s=calWeeks[curWeek-1][activeDay];
+    const w=WO[s.wt];
+    const bl2=PINFO[s.pw];
+    const color={upper:'var(--upper)',pull:'var(--pull)',push:'var(--push)',legs:'var(--legs)'}[s.wt];
+    const sd=weekDates[activeDay];
+    document.getElementById('detailPanel').innerHTML=`
+      <div class="panel-hdr">
+        <div class="panel-wk-badge">Cal wk ${curWeek} · Day ${activeDay+1}${sd?' · '+sd.label:''}</div>
+        <div class="panel-title" style="color:${color}">${w.title}</div>
+        <span class="mpill ${PCLS[bl2]}" style="margin-left:12px">${PLABEL[bl2]} · ${PRPE[bl2]}</span>
+        <div class="panel-close" onclick="closeDetail()">✕</div>
+      </div>
+      ${buildTable(s.wt)}`;
+    wrap.classList.add('open');
+    setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  } else {
+    wrap.classList.remove('open');
+  }
+
+  renderTimeline();
+}
+
+function toggleDay(idx){activeDay=activeDay===idx?null:idx;render();}
+function closeDetail(){activeDay=null;render();}
+function go(n){curWeek=n;activeDay=null;render();}
+
+/* ── KEYBOARD NAVIGATION ── */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'&&curWeek<16){go(curWeek+1);}
+  if(e.key==='ArrowLeft'&&curWeek>1){go(curWeek-1);}
+});
+
+/* ── INIT ── */
+curWeek=findCurrentWeek();
+renderBanner();
+render();
+</script>
+</body>
+</html>
